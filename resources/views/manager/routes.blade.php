@@ -24,12 +24,7 @@
       padding: 30px;
       color: #fff;
     }
-    .avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
+    .avatar { width: 50px; height: 50px; border-radius: 50%; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -45,8 +40,7 @@
       <li><span class="dropdown-item-text"><strong>Email:</strong> {{ Auth::user()->email }}</span></li>
       <li><hr class="dropdown-divider"></li>
       <li>
-        <form method="POST" action="{{ route('logout') }}">
-          @csrf
+        <form method="POST" action="{{ route('logout') }}">@csrf
           <button type="submit" class="dropdown-item text-danger">🚪 Logout</button>
         </form>
       </li>
@@ -56,6 +50,11 @@
 
 <div class="content">
   <h2>Routes List</h2>
+
+  <!-- Success/Error messages -->
+  @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
+  @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif
+
   <!-- Table -->
   <table class="table table-dark table-striped">
     <thead><tr><th>#</th><th>Name</th><th>Actions</th></tr></thead>
@@ -65,8 +64,8 @@
           <td>{{ $route->id }}</td>
           <td>{{ $route->name }}</td>
           <td>
-            <a href="#" class="btn btn-warning btn-sm">Edit</a>
-            <form action="#" method="POST" class="d-inline">@csrf @method('DELETE')
+            <form action="{{ route('manager.routes.delete', $route->id) }}" method="POST" class="d-inline">
+              @csrf @method('DELETE')
               <button class="btn btn-danger btn-sm">Delete</button>
             </form>
           </td>
@@ -74,6 +73,16 @@
       @endforeach
     </tbody>
   </table>
+
+  <!-- Add new route -->
+  <form method="POST" action="{{ route('manager.routes.create') }}" class="mt-4">
+    @csrf
+    <div class="mb-3">
+      <label for="name" class="form-label text-white">New Route Name</label>
+      <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <button type="submit" class="btn btn-success">Add Route</button>
+  </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

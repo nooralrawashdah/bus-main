@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\managercontroller;
+use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\DriverController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\LoginController;
@@ -22,16 +22,34 @@ Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->na
 Route::post('/register', [RegisterController::class, 'register']);
 
 // صفحة المدير
-Route::get('/manger', function () {
-    return view('manger.mdashboard');
-})->middleware('auth')->name('manger.dashboard');
+
+
+// Dashboard
+Route::get('/manager/dashboard', [ManagerController::class, 'index'])->name('manager.mdashboard');
+
+// Routes Management
+Route::get('/manager/routes', [ManagerController::class, 'viewRoutes'])->name('manager.routes');
+Route::post('/manager/routes/create', [ManagerController::class, 'createRoute'])->name('manager.routes.create');
+Route::post('/manager/routes/{route}/update', [ManagerController::class, 'updateRoute'])->name('manager.routes.update');
+Route::delete('/manager/routes/{route}', [ManagerController::class, 'deleteRoute'])->name('manager.routes.delete');
+
+// Buses Management
+Route::get('/manager/buses', [ManagerController::class, 'viewBuses'])->name('manager.buses');
+Route::post('/manager/buses/create', [ManagerController::class, 'createBus'])->name('manager.buses.create');
+
+// Trips Management
+Route::get('/manager/trips', [ManagerController::class, 'viewTrips'])->name('manager.trips');
+Route::post('/manager/trips/create', [ManagerController::class, 'createTrip'])->name('manager.trips.create');
+
+// Drivers Management
+Route::get('/manager/drivers', [ManagerController::class, 'viewDrivers'])->name('manager.drivers');
+Route::post('/manager/drivers/{driver}/assign-bus', [ManagerController::class, 'assignBusToDriver'])->name('manager.drivers.assignBus');
+
 
 Route::get('/login',[LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login',[LoginController::class, 'login']);
-Route::post('/logout',[LoginController::class, 'logout']);
-Route::post('/logout', function () {
-    return redirect('/login')->with('success', 'Logged out successfully!');
-})->name('logout');
+Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
+
 
 Route::get('/test-edit/{id}', function ($id) {
     return "<h1>Editing Bus #{$id}</h1>";
@@ -47,14 +65,14 @@ Route::get('/test-edit/{id}', function ($id) {
 
 
 Route::middleware(['auth', 'role:driver'])->group(function () {
-    Route::get('/driver.dashboard', [DriverController::class, 'index'])->name('driver.dashboard');
+    Route::get('/driver/dashboard', [DriverController::class, 'index'])->name('driver.dashboard');
     Route::get('/driver/trips', [DriverController::class, 'trips'])->name('driver.trips');
     Route::get('/driver/bus', [DriverController::class, 'bus'])->name('driver.bus');
-    Route::get('/driver/history', [DriverController::class, 'history'])->name('driver.history');
+    //Route::get('/driver/history', [DriverController::class, 'history'])->name('driver.history');
 
     Route::post('/driver/start-trip/{trip}', [DriverController::class, 'startTrip'])->name('driver.startTrip');
     Route::get('/driver/check-seat-status/{trip}', [DriverController::class, 'checkSeatStatus'])->name('driver.checkSeatStatus');
 });
 
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+//Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

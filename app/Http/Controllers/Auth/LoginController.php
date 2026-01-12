@@ -29,13 +29,25 @@ class LoginController extends Controller
             // 3. توجيه حسب نوع المستخدم
             $user = Auth::user();
 
-            if ($user->user_type === 'driver') {
-                return redirect()->route('driver.dashboard');
-            } elseif ($user->user_type === 'admin') {
-                return redirect()->route('manger.mdashboard');
-            } else {
-                return redirect('users.userdashboard');
-            }
+         if ($user->hasRole('driver'))
+         {
+           return redirect()->route('driver.dashboard');
+        }
+elseif ($user->hasRole('admin'))
+    {
+    return redirect()->route('manager.mdashboard');
+     }
+
+else
+ {
+    return redirect()->route('users.userdashboard');
+   }
+/* else {
+    // fallback إذا ما عنده أي دور
+    Auth::logout();
+    return redirect()->route('login')->withErrors(['email' => 'لا يوجد دور صالح لهذا الحساب.']);
+}*/
+
         }
 
         // 4. إذا فشل تسجيل الدخول
@@ -52,6 +64,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+       return redirect()->route('login')->with('success', 'Logged out successfully!');
     }
 }

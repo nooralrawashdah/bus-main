@@ -67,7 +67,7 @@ class RegisterController extends Controller
     ];
 
     if ($request->user_type === 'driver')
-         { $rules['Driver_license_number'] = 'required|string|max:50'; }
+         { $rules['driver_license_number'] = 'required|string|max:50'; }
     if ($request->user_type === 'admin')
          { $rules['experience_years'] = 'required|integer|min:0|max:99'; }
      if ($request->user_type === 'student')
@@ -75,7 +75,7 @@ class RegisterController extends Controller
       $validated = $request->validate($rules);
 
     // 2. أنشئ المستخدم
-    $user = \App\Models\User::create([
+    $user = \App\Models\User::updateOrCreate([
         'name' => $validated['name'],
         'email' => $validated['email'],
         'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
@@ -85,8 +85,8 @@ class RegisterController extends Controller
 
 
      if ($validated['user_type'] === 'driver') {
-            Driver::create([
-                'users_id' => $user->id,
+            Driver::updateOrCreate([
+                'user_id' => $user->id,
                'driver_license_number' => $validated['driver_license_number']
             ]);
 
@@ -95,8 +95,8 @@ class RegisterController extends Controller
         }
        elseif ($validated['user_type'] === 'admin')
              {
-               Manager::create([
-                'users_id' => $user->id,
+               Manager::updateOrCreate([
+                'user_id' => $user->id,
             'experience_years' => $validated['experience_years']
             ]);
 
@@ -106,8 +106,8 @@ class RegisterController extends Controller
        }
         elseif ($validated['user_type'] === 'student')
              {
-                Student::create([
-                   'users_id' => $user->id,
+                Student::updateOrCreate([
+                   'user_id' => $user->id,
                 'student_number' => $validated['student_number']
 
         ]);
@@ -115,7 +115,7 @@ class RegisterController extends Controller
              $user->addRole('student');
         }
     //           // 3. سجل الدخول
-    Illuminate\Support\Facades\Auth::login($user);
+    \Illuminate\Support\Facades\Auth::login($user);
 
 
 
