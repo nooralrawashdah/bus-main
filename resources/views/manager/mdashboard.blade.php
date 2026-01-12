@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Driver Dashboard</title>
+  <title>Manager Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -46,19 +46,18 @@
 </head>
 <body>
 
-<!-- الهيدر -->
+<!-- Navbar -->
 <nav class="navbar navbar-dark bg-dark px-3">
-  <a class="navbar-brand" href="#">Bus System</a>
+  <a class="navbar-brand" href="#">Bus System - Manager</a>
   <div class="dropdown">
-    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Driver Avatar" class="avatar dropdown-toggle" id="driverMenu" data-bs-toggle="dropdown" aria-expanded="false">
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="driverMenu">
+    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Manager Avatar" class="avatar dropdown-toggle" id="managerMenu" data-bs-toggle="dropdown" aria-expanded="false">
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="managerMenu">
       <li><h6 class="dropdown-header">Profile</h6></li>
       <li><span class="dropdown-item-text"><strong>Name:</strong> {{ Auth::user()->name }}</span></li>
       <li><span class="dropdown-item-text"><strong>Email:</strong> {{ Auth::user()->email }}</span></li>
       <li><span class="dropdown-item-text"><strong>Phone:</strong> {{ Auth::user()->phone_number }}</span></li>
-      <li><span class="dropdown-item-text"><strong>License:</strong> {{ Auth::user()->Driver_license_number }}</span></li>
       <li><hr class="dropdown-divider"></li>
-      <!-- زر تسجيل الخروج -->
+      <!-- Logout -->
       <li>
         <form method="POST" action="{{ route('logout') }}">
           @csrf
@@ -69,10 +68,12 @@
   </div>
 </nav>
 
-<!-- المحتوى -->
+<!-- Content -->
 <div class="content">
-  <a href="{{ route('driver.trips') }}" class="btn btn-primary btn-custom">📅 Today's Trips</a>
-  <a href="{{ route('driver.bus') }}" class="btn btn-success btn-custom">🚌 My Bus</a>
+  <a href="{{ route('manager.routes') }}" class="btn btn-primary btn-custom">🛣️ Manage Routes</a>
+  <a href="{{ route('manager.buses') }}" class="btn btn-success btn-custom">🚌 Manage Buses</a>
+  <a href="{{ route('manager.trips') }}" class="btn btn-warning btn-custom">📅 Manage Trips</a>
+  <a href="{{ route('manager.drivers') }}" class="btn btn-info btn-custom">👨‍✈️ Manage Drivers</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

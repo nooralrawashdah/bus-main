@@ -7,9 +7,10 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Drivers;
-use App\Models\Managers;
-
+use App\Models\Driver;
+use App\Models\Manager;
+use App\Models\Student;
+use App\Models\Region;
 use Illuminate\Http\Request;
 
 
@@ -46,73 +47,76 @@ class RegisterController extends Controller
     }
      public function showRegistrationForm()
     {
-        return view('auth.register');
+        //return view('auth.register');
+        $regions = Region::all();
+        return view('auth.register', compact('regions'));
     }
    public function register(\Illuminate\Http\Request $request)
 {
     // 1. تحقق من البيانات
-    $validated = $request->validate([
+    //$validated = $request->validate(
+      $rules =  [
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
-    ]);
+        'region_id' => 'required|exists:regions,id',
+        'phone_number' => 'required|string|max:10',
+        'user_type' => 'required|in:driver,admin,student',
+
+
+    ];
+
+    if ($request->user_type === 'driver')
+         { $rules['Driver_license_number'] = 'required|string|max:50'; }
+    if ($request->user_type === 'admin')
+         { $rules['experience_years'] = 'required|integer|min:0|max:99'; }
+     if ($request->user_type === 'student')
+         { $rules['student_number'] = 'required|string|max:9'; }
+      $validated = $request->validate($rules);
 
     // 2. أنشئ المستخدم
     $user = \App\Models\User::create([
         'name' => $validated['name'],
         'email' => $validated['email'],
         'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
-        //'Address' => $validated['Address'],
         'phone_number' => $validated['phone_number'],
+          'region_id' => $validated['region_id'],
     ]);
 
-    $user->addRole('student');
 
-    // if ($validated['user_type'] === 'driver') {
-    //         Drivers::create([
-    //             'users_id' => $user->id,
-    //             'Driver_Name' => $validated['name'],
-    //             'Driver_Phone' => $validated['Driver_Phone'],
-    //             'Driver_license_num' => $validated['Driver_license_num'],
-    //         ]);
+     if ($validated['user_type'] === 'driver') {
+            Driver::create([
+                'users_id' => $user->id,
+               'driver_license_number' => $validated['driver_license_number']
+            ]);
 
-    //         //  الخطوة 1: ربط دور 'driver' في جداول Laratrust
-    //         $user->attachRole('driver');
+            $user->addRole('driver');
 
-    //     }
-    //     elseif ($validated['user_type'] === 'admin')
-    //          {
-    //             Managers::create([
-    //             'users_id' => $user->id,
-    //             'manager_name' => $validated['name'],
-    //             'phone_number' => $validated['phone_number'],
-    //         ]);
+        }
+       elseif ($validated['user_type'] === 'admin')
+             {
+               Manager::create([
+                'users_id' => $user->id,
+            'experience_years' => $validated['experience_years']
+            ]);
 
-    //        // الخطوة 2: ربط دور 'admin' في جداول Laratrust
-    //         $user->attachRole('admin');
+            $user->addRole('admin');
 
 
-    //     }
-    //     elseif ($validated['user_type'] === 'student') {
-    //         //  الخطوة 3: ربط دور 'student' في جداول Laratrust
-    //         $user->attachRole('student');
-    //     }
+       }
+        elseif ($validated['user_type'] === 'student')
+             {
+                Student::create([
+                   'users_id' => $user->id,
+                'student_number' => $validated['student_number']
+
+        ]);
+             //  الخطوة 3: ربط دور 'student' في جداول Laratrust
+             $user->addRole('student');
+        }
     //           // 3. سجل الدخول
-    // \Illuminate\Support\Facades\Auth::login($user);
-    // // 4. توجيه للصفحة الرئيسية
+    Illuminate\Support\Facades\Auth::login($user);
 
-    //   if ($user->user_type === 'driver')
-    //      {
-    //         return redirect()->route('driver.dashboard');
-    //     }
-    //     elseif ($user->user_type === 'admin') {
-    //         return redirect()->route('manager.mdashboard');
-    //     }
-    //     else
-    //     {
-    //       return redirect()->route('student.dashboard');
-
-    //     }
 
 
    return redirect()->route('login');

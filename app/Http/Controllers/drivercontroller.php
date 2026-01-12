@@ -1,49 +1,87 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Trip;
+use App\Models\Bus;
+use Carbon\Carbon;
 
 class DriverController extends Controller
 {
-    public function dashboard()
+    public function index()
     {
-        // بيانات تجريبية
-        $data = [
-            'seats_booked' => 40,
-            'trip_started' => false,
-            'driver_name' => 'Ahmed Mohammed',
-            'bus_number' => 'BUS-101',
-            'today_trips' => [
-                ['time' => '08:00 AM', 'route' => 'City Center → University', 'seats' => 40],
-                ['time' => '02:00 PM', 'route' => 'University → Mall', 'seats' => 30],
-                ['time' => '06:00 PM', 'route' => 'Mall → Airport', 'seats' => 15],
-            ],
-            'total_seats' => 40
+        $driver = Auth::user();
+
+        $personalInfo = [
+            'name' => $driver->name,
+            'email' => $driver->email,
+            'phone_number' => $driver->phone_number,
+            'licenseId' => $driver->license_id,
         ];
 
-        return view('driver.dashboard', $data);
+        $assignedBus = Bus::where('driver_id', $driver->id)->first();
+        $todayTrips = $this->getScheduledTrips(Carbon::today());
+
+        return view('driver.dashboard', compact('personalInfo', 'assignedBus', 'todayTrips'));
     }
 
-    public function startTrip()
+    public function getScheduledTrips(Carbon $date)
     {
-        // بيانات تجريبية (لاحقاً من DB)
-        $seats_booked = 40;
-        $total_seats = 40;
-        $trip_started = false;
+        $driver = Auth::user();
+        $assignedBus = $driver->bus;
 
-        if ($trip_started) {
-            return back()->with('error', 'Trip already started');
+        if (!$assignedBus) {
+            return collect([]);
         }
 
-        if ($seats_booked == $total_seats) {
-            return back()->with('success', 'Trip started successfully');
-        } else {
-            return back()->with('error', 'Cannot start trip, not all seats booked');
-        }
+        // جلب الرحلات مع عدد المقاعد المحجوزة
+        return Trip::with(['route', 'bus'])
+            ->withCount('bookings')
+            ->where('bus_id', $assignedBus->id)
+            ->whereDate('start_time', $date)
+            ->get();
     }
 
-      /*public function viewSchedule()
+    public function trips()
     {
+        $todayTrips = $this->getScheduledTrips(Carbon::today());
+        return view('driver.trips', compact('todayTrips'));
+    }
 
-    }*/
+    public function bus()
+    {
+        $driver = Auth::user();
+        $assignedBus = Bus::where('driver_id', $driver->id)->first();
+        return view('driver.bus', compact('assignedBus'));
+    }
+
+    public function checkSeatStatus(Trip $trip)
+    {
+        $bookedSeats = $trip->bookings()->count();
+        $busCapacity = $trip->bus->capacity;
+        $isFull = $bookedSeats >= $busCapacity;
+
+        return [
+            'booked' => $bookedSeats,
+            'capacity' => $busCapacity,
+            'status' => $isFull ? 'Seats Full' : 'Waiting For Seats',
+            'readyToStart' => $isFull
+        ];
+    }
+
+    public function startTrip(Trip $trip)
+    {
+        $seatStatus = $this->checkSeatStatus($trip);
+
+        if ($seatStatus['readyToStart']) {
+            $trip->status = 'STARTED';
+            $trip->save();
+
+            return redirect()->back()->with('success', 'تم بدء الرحلة بنجاح.');
+        }
+
+        return redirect()->back()->with('error', 'لا يمكن بدء الرحلة. المقاعد غير ممتلئة بعد.');
+    }
 }
