@@ -35,7 +35,11 @@ Route::delete('/manager/routes/{route}', [ManagerController::class, 'deleteRoute
 
 // Buses Management
 Route::get('/manager/buses', [ManagerController::class, 'viewBuses'])->name('manager.buses');
-Route::post('/manager/buses/create', [ManagerController::class, 'createBus'])->name('manager.buses.create');
+Route::get('/manager/buses/create', [ManagerController::class, 'showCreateBus'])->name('manager.buses.create'); // Show Form
+Route::post('/manager/buses', [ManagerController::class, 'createBus'])->name('manager.buses.store'); // Store Data
+Route::get('/manager/buses/{bus}/edit', [ManagerController::class, 'editBus'])->name('manager.buses.edit'); // Show Edit Form
+Route::put('/manager/buses/{bus}', [ManagerController::class, 'updateBus'])->name('manager.buses.update'); // Update Data
+Route::delete('/manager/buses/{bus}', [ManagerController::class, 'deleteBus'])->name('manager.buses.delete');
 
 // Trips Management
 Route::get('/manager/trips', [ManagerController::class, 'viewTrips'])->name('manager.trips');
@@ -43,12 +47,16 @@ Route::post('/manager/trips/create', [ManagerController::class, 'createTrip'])->
 
 // Drivers Management
 Route::get('/manager/drivers', [ManagerController::class, 'viewDrivers'])->name('manager.drivers');
-Route::post('/manager/drivers/{driver}/assign-bus', [ManagerController::class, 'assignBusToDriver'])->name('manager.drivers.assignBus');
+Route::post('/manager/drivers/create', [ManagerController::class, 'createDriver'])->name('manager.drivers.create');
+Route::get('/manager/drivers/{driver}/edit', [ManagerController::class, 'editDriver'])->name('manager.drivers.edit');
+Route::put('/manager/drivers/{driver}', [ManagerController::class, 'updateDriver'])->name('manager.drivers.update');
+Route::delete('/manager/drivers/{driver}', [ManagerController::class, 'deleteDriver'])->name('manager.drivers.delete');
+//Route::post('/manager/drivers/{driver}/assign-bus', [ManagerController::class, 'assignBusToDriver'])->name('manager.drivers.assignBus');
 
 
-Route::get('/login',[LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login',[LoginController::class, 'login']);
-Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 
 Route::get('/test-edit/{id}', function ($id) {

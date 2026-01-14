@@ -53,7 +53,7 @@ else
         // 4. إذا فشل تسجيل الدخول
         return back()->withErrors([
 
-            'email' => 'بيانات الدخول غير صحيحة.',
+            'email' => ' not validet Email or password',
         ])->onlyInput('email');
     }
 

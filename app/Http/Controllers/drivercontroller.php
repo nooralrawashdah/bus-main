@@ -7,21 +7,28 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Trip;
 use App\Models\Bus;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DriverController extends Controller
 {
     public function index()
     {
-        $driver = Auth::user();
+        $user = Auth::user();
+        // جبت  باقي معلومات من جدول سائق لانو هو يلي بدي اتعامل معو مشان باص 
+        $driverRecord = $user->driver; 
 
         $personalInfo = [
-            'name' => $driver->name,
-            'email' => $driver->email,
-            'phone_number' => $driver->phone_number,
-            'licenseId' => $driver->license_id,
+            'name'         => $user->name,
+            'email'        => $user->email,
+            'phone_number' => $user->phone_number,
+            'licenseId'    => $driverRecord ? $driverRecord->driver_license_number : 'N/A',
         ];
 
-        $assignedBus = Bus::where('driver_id', $driver->id)->first();
+        $assignedBus = null;
+        if ($driverRecord) {
+            $assignedBus = Bus::where('driver_id', $driverRecord->id)->first();
+        }
+
         $todayTrips = $this->getScheduledTrips(Carbon::today());
 
         return view('driver.dashboard', compact('personalInfo', 'assignedBus', 'todayTrips'));
@@ -29,14 +36,16 @@ class DriverController extends Controller
 
     public function getScheduledTrips(Carbon $date)
     {
-        $driver = Auth::user();
-        $assignedBus = $driver->bus;
+        $user = Auth::user();
+        $driverRecord = $user->driver;
+
+        // البحث عن الباص بناءً على سجل السائق
+        $assignedBus = $driverRecord ? Bus::where('driver_id', $driverRecord->id)->first() : null;
 
         if (!$assignedBus) {
             return collect([]);
         }
 
-        // جلب الرحلات مع عدد المقاعد المحجوزة
         return Trip::with(['route', 'bus'])
             ->withCount('bookings')
             ->where('bus_id', $assignedBus->id)
@@ -52,8 +61,11 @@ class DriverController extends Controller
 
     public function bus()
     {
-        $driver = Auth::user();
-        $assignedBus = Bus::where('driver_id', $driver->id)->first();
+        $user = Auth::user();
+        $driverRecord = $user->driver;
+        
+        $assignedBus = $driverRecord ? Bus::where('driver_id', $driverRecord->id)->first() : null;
+        
         return view('driver.bus', compact('assignedBus'));
     }
 
@@ -64,9 +76,9 @@ class DriverController extends Controller
         $isFull = $bookedSeats >= $busCapacity;
 
         return [
-            'booked' => $bookedSeats,
-            'capacity' => $busCapacity,
-            'status' => $isFull ? 'Seats Full' : 'Waiting For Seats',
+            'booked'       => $bookedSeats,
+            'capacity'     => $busCapacity,
+            'status'       => $isFull ? 'Seats Full' : 'Waiting For Seats',
             'readyToStart' => $isFull
         ];
     }
@@ -79,9 +91,9 @@ class DriverController extends Controller
             $trip->status = 'STARTED';
             $trip->save();
 
-            return redirect()->back()->with('success', 'تم بدء الرحلة بنجاح.');
+            return redirect()->back()->with('success', 'Trip started successfully');
         }
 
-        return redirect()->back()->with('error', 'لا يمكن بدء الرحلة. المقاعد غير ممتلئة بعد.');
+        return redirect()->back()->with('error', 'The bus is not full yet. All seats must be booked to start.');
     }
 }

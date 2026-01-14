@@ -54,28 +54,30 @@ class RegisterController extends Controller
    public function register(\Illuminate\Http\Request $request)
 {
     // 1. تحقق من البيانات
-    //$validated = $request->validate(
-      $rules =  [
-        'name' => 'required|string|max:255',
+    //      $rules =  [];
+
+      $validated = $request->validate(
+       [ 'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
         'password' => 'required|string|min:8|confirmed',
         'region_id' => 'required|exists:regions,id',
-        'phone_number' => 'required|string|max:10',
-        'user_type' => 'required|in:driver,admin,student',
+        'phone_number' => ['required', 'regex:/^(079|078|077)[0-9]{7}$/'],
+        'student_number' => 'required|string|max:9',
+
+       // 'user_type' => 'required|in:driver,admin,student'
+     ] );
 
 
-    ];
-
-    if ($request->user_type === 'driver')
+   /* if ($request->user_type === 'driver')
          { $rules['driver_license_number'] = 'required|string|max:50'; }
     if ($request->user_type === 'admin')
          { $rules['experience_years'] = 'required|integer|min:0|max:99'; }
      if ($request->user_type === 'student')
          { $rules['student_number'] = 'required|string|max:9'; }
       $validated = $request->validate($rules);
-
+*/
     // 2. أنشئ المستخدم
-    $user = \App\Models\User::updateOrCreate([
+    $user = User::create([
         'name' => $validated['name'],
         'email' => $validated['email'],
         'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
@@ -83,8 +85,12 @@ class RegisterController extends Controller
           'region_id' => $validated['region_id'],
     ]);
 
+   Student::create([
+    'user_id' => $user->id,
+     'student_number' => $validated['student_number'],
+    ]);
 
-     if ($validated['user_type'] === 'driver') {
+    /* if ($validated['user_type'] === 'driver') {
             Driver::updateOrCreate([
                 'user_id' => $user->id,
                'driver_license_number' => $validated['driver_license_number']
@@ -110,10 +116,10 @@ class RegisterController extends Controller
                    'user_id' => $user->id,
                 'student_number' => $validated['student_number']
 
-        ]);
+        ]); }*/
              //  الخطوة 3: ربط دور 'student' في جداول Laratrust
              $user->addRole('student');
-        }
+
     //           // 3. سجل الدخول
     \Illuminate\Support\Facades\Auth::login($user);
 
