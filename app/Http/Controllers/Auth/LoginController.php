@@ -40,7 +40,7 @@ elseif ($user->hasRole('admin'))
 
 else
  {
-    return redirect()->route('users.userdashboard');
+    return redirect()->route('student.dashbord');
    }
 /* else {
     // fallback إذا ما عنده أي دور
